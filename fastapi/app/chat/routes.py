@@ -1,13 +1,22 @@
 from fastapi import APIRouter
 from app.models import ChatRequest
+
 from app.roles.data import roles
-import openai
+from openai import OpenAI
+
+# 百度千帆应用配置
+client = OpenAI(
+    api_key="bce-v3/ALTAK-um3v8vhXVtEcQDXEdp9LB/74a116123c87f6b43fa8b9d8af1a10659d37266a",  # 请替换为你的 token
+    base_url="https://qianfan.baidubce.com/v2",
+    default_headers={"appid": ""}
+)
 
 router = APIRouter()
 
-def call_openai(role_prompt, user_message):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+
+def call_qianfan(role_prompt, user_message):
+    response = client.chat.completions.create(
+        model="ernie-4.0-turbo-8k",
         messages=[
             {"role": "system", "content": role_prompt},
             {"role": "user", "content": user_message}
@@ -22,6 +31,6 @@ def chat(req: ChatRequest):
     if not role:
         return {"reply": "角色未找到。"}
     role_prompt = f"你是{role['name']}，{role['desc']}"
-    # 2. 调用大厂AI接口
-    reply = call_openai(role_prompt, req.message)
+    # 2. 调用百度千帆AI接口
+    reply = call_qianfan(role_prompt, req.message)
     return {"reply": reply}
