@@ -17,4 +17,5 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 fastapi:
-  base-url: http://localhost:8000
+  base-url: http://127.0.0.1:8000
+  mock: true
