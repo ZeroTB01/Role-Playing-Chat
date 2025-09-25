@@ -1,3 +1,31 @@
+import base64
+from pydantic import BaseModel
+from fastapi import Body
+from fastapi import APIRouter
+
+router = APIRouter()
+# 音频处理请求体模型
+class AudioRequest(BaseModel):
+    character: str
+    audioBase64: str
+
+@router.post("/process_audio")
+async def process_audio(req: AudioRequest = Body(...)):
+    # 1. 解码音频
+    audio_bytes = base64.b64decode(req.audioBase64)
+    # 2. 语音识别（伪代码，需接入百度/七牛等ASR）
+    text = third_party_asr(audio_bytes)
+    # 3. AI角色回复（伪代码，实际可复用chat接口逻辑）
+    chat_req = ChatRequest(role_id=1, message=text)  # 这里可根据character映射role_id
+    reply = chat(chat_req)
+    # 4. 语音合成（伪代码，需接入百度/七牛TTS）
+    ai_audio_bytes = third_party_tts(reply["reply"])
+    ai_audio_base64 = base64.b64encode(ai_audio_bytes).decode()
+    return {
+        "text": text,
+        "reply": reply["reply"],
+        "audioBase64": ai_audio_base64
+    }
 from fastapi import APIRouter, File, UploadFile
 from app.models import ChatRequest
 from app.chat.routes import chat

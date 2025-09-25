@@ -1,7 +1,7 @@
-from fastapi import APIRouter
-from app.models import ChatRequest
 
-from app.roles.data import roles
+from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import List
 from openai import OpenAI
 
 # 百度千帆应用配置
@@ -13,24 +13,30 @@ client = OpenAI(
 
 router = APIRouter()
 
+# 请求体模型
+class ChatContextItem(BaseModel):
+    role: str
+    content: str
 
-def call_qianfan(role_prompt, user_message):
-    response = client.chat.completions.create(
-        model="ernie-4.0-turbo-8k",
-        messages=[
-            {"role": "system", "content": role_prompt},
-            {"role": "user", "content": user_message}
-        ]
-    )
-    return response.choices[0].message.content
+class ChatRequest(BaseModel):
+    character: str
+    context: List[ChatContextItem]
 
 @router.post("/chat")
 def chat(req: ChatRequest):
-    # 1. 获取角色设定
-    role = next((r for r in roles if r["id"] == req.role_id), None)
-    if not role:
-        return {"reply": "角色未找到。"}
-    role_prompt = f"你是{role['name']}，{role['desc']}"
-    # 2. 调用百度千帆AI接口
-    reply = call_qianfan(role_prompt, req.message)
+    # 拼接角色设定
+    role_prompt = f"你现在扮演{req.character}，请用该角色的身份和风格回复。"
+    # 构造 messages 列表
+    messages = [{"role": "system", "content": role_prompt}]
+    for item in req.context:
+        # user/ai角色分别对应user/assistant
+        if item.role == "user":
+            messages.append({"role": "user", "content": item.content})
+        else:
+            messages.append({"role": "assistant", "content": item.content})
+    response = client.chat.completions.create(
+        model="ernie-4.0-turbo-8k",
+        messages=messages
+    )
+    reply = response.choices[0].message.content
     return {"reply": reply}
