@@ -134,7 +134,7 @@ onMounted(loadRoles)
     <ElDrawer v-model="drawer" title="角色列表" size="300px" :with-header="true">
       <div class="role-list">
         <div v-for="r in roles" :key="r.id" class="role-item" @click="selectedRole = r; drawer=false">
-          <ElAvatar :size="48" src="/favicon.ico" />
+          <ElAvatar :size="48" :src="r.avatarUrl" />
           <div class="meta">
             <div class="name">{{ r.name }}</div>
             <div class="desc">{{ r.description }}</div>
@@ -147,7 +147,7 @@ onMounted(loadRoles)
       <ElScrollbar class="chat-scroll" ref="chatRef">
         <div class="messages">
           <div v-for="(m,idx) in messages" :key="idx" class="msg" :class="m.from">
-            <ElAvatar :size="36" :src="m.from==='ai'? '/favicon.ico' : '/favicon.ico'" />
+            <ElAvatar :size="36" :src="m.from==='ai'? selectedRole.avatarUrl : '/favicon.ico'" />
             <div class="bubble">{{ m.content }}</div>
           </div>
         </div>
